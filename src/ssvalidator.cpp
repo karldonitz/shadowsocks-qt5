@@ -3,7 +3,14 @@
 
 QStringList SSValidator::supportedMethodList()
 {
-    QList<QByteArray> methodBA = QSS::Cipher::getSupportedMethodList();
+    QList<QByteArray> methodBA;
+    for (auto it = QSS::Cipher::cipherNameMap.cbegin();
+         it != QSS::Cipher::cipherNameMap.cend();
+         ++it) {
+        if (QSS::Cipher::isSupported(it.value())) {
+            methodBA.push_back(it.key());
+        }
+    }
     QStringList methodList;
     for (const QByteArray &method : methodBA) {
         methodList.push_back(QString(method).toUpper());
