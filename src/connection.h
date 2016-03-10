@@ -39,6 +39,8 @@ public:
     bool isValid() const;
     const bool &isRunning() const;
     void latencyTest();
+    int getLatency() const;
+    void updateProfile(QString password, quint16 serverPort, QString method);
 
 signals:
     void stateChanged(bool started);

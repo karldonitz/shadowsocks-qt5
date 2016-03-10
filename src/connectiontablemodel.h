@@ -44,6 +44,9 @@ public:
 
     void disconnectConnectionsAt(const QString &addr, quint16 port);
 
+    void updateItems(QString msg);
+    QString findFirstTagValue(QString msg, int indexStart, QString label);
+
 public slots:
     void testAllLatency();
 
@@ -53,6 +56,7 @@ signals:
 
 private:
     QList<ConnectionItem*> items;
+    int latencyBest;
     static QString convertLatencyToString(const int latency);
 
 private slots:

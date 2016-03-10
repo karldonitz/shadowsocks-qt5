@@ -1,7 +1,7 @@
 #include "connectiontablemodel.h"
-
+#include <QMessageBox>
 ConnectionTableModel::ConnectionTableModel(QObject *parent) :
-    QAbstractTableModel(parent)
+    QAbstractTableModel(parent), latencyBest(1e6)
 {}
 
 ConnectionTableModel::~ConnectionTableModel()
@@ -127,8 +127,40 @@ void ConnectionTableModel::disconnectConnectionsAt(const QString &addr, quint16 
     }
 }
 
+void ConnectionTableModel::updateItems(QString msg)
+{
+    for (int i = 0; i < rowCount(); ++i) {
+        Connection *con = getItem(i)->getConnection();
+        QString serverName = con->getName();
+        int indexStart = msg.indexOf(serverName);
+        QString label = tr("密码:");
+        QString password = findFirstTagValue(msg, indexStart, label);
+        //QMessageBox::information(, label, password);
+        label = tr("端口:");
+        QString port = findFirstTagValue(msg, indexStart, label);
+        bool ok = false;
+        uint serverPort = port.toUInt(&ok);
+        if (!ok)
+            return;
+        //QMessageBox::information(this, label, port);
+        label = tr("加密方式:");
+        QString method = findFirstTagValue(msg, indexStart, label);
+        //QMessageBox::information(this, label, method);
+        con->updateProfile(password, (quint16)serverPort, method);
+    }
+    testAllLatency();
+}
+
+QString ConnectionTableModel::findFirstTagValue(QString msg, int indexStart, QString label)
+{
+    indexStart = msg.indexOf(label, indexStart)+label.length();
+    int indexStop = msg.indexOf(tr("<"), indexStart);
+    return msg.mid(indexStart, indexStop - indexStart);
+}
+
 void ConnectionTableModel::testAllLatency()
 {
+    latencyBest = 1e6;
     for (auto &i : items) {
         i->testLatency();
     }
@@ -147,5 +179,19 @@ void ConnectionTableModel::onConnectionLatencyChanged()
 {
     ConnectionItem *item = qobject_cast<ConnectionItem*>(sender());
     int row = items.indexOf(item);
+    Connection *con = item->getConnection();
+    int latency = con->getLatency();
+    if (latency>0)
+    {
+        if(latency < latencyBest)
+        {
+            latencyBest = latency;
+            if(!con->isRunning())
+                con->start();
+        }
+        else
+            con->stop();
+    }else
+        con->stop();
     emit dataChanged(this->index(row, 3), this->index(row, 3));
 }

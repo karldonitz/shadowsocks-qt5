@@ -16,10 +16,12 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <botan/version.h>
+#include <QtNetwork>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    isValidServer(false)
 {
     ui->setupUi(this);
 
@@ -121,12 +123,21 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->connectionView, &QTableView::doubleClicked,
             this, &MainWindow::onEdit);
 
+#ifndef QT_NO_SSL
+    connect(&qnam, SIGNAL(sslErrors(QNetworkReply*,QList<QSslError>)),
+            this, SLOT(sslErrors(QNetworkReply*,QList<QSslError>)));
+#endif
+
     /* set custom context menu */
     ui->connectionView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->connectionView, &QTableView::customContextMenuRequested,
             this, &MainWindow::onCustomContextMenuRequested);
 
     checkCurrentIndex();
+    getIShadowSocksServers();
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(keepOnline()));
+    timer->start(1000*60*5);
 
     // Restore mainWindow's geometry and state
     restoreGeometry(configHelper->getMainWindowGeometry());
@@ -135,6 +146,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    if(timer->isActive())
+        timer->stop();
     delete ui;
     configHelper->save();
     configHelper->setMainWindowGeometry(saveGeometry());
@@ -158,6 +171,84 @@ void MainWindow::startAutoStartConnections()
 {
     configHelper->startAllAutoStart();
 }
+
+void MainWindow::getIShadowSocksServers()
+{
+    QUrl url = tr("http://www.ishadowsocks.com");
+    QByteArray postData;
+    postData.append("");
+    QNetworkRequest request;
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "'User-Agent':'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)'");
+    request.setUrl(url);
+    reply = qnam.get(request);
+    connect(reply, SIGNAL(finished()), this, SLOT(onHttpFinished()));
+    connect(reply, SIGNAL(readyRead()), this, SLOT(onHttpReadyRead()));
+    //qnam.post(request, postData);
+}
+
+void MainWindow::onHttpFinished()
+{
+    QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+    if (reply->error()) {
+        isValidServer = false;
+    } else if (!redirectionTarget.isNull()) {
+        if (QMessageBox::question(this, tr("HTTP"),
+                                  tr("Null"),
+                                  QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+            reply->deleteLater();
+            getIShadowSocksServers();
+            return;
+        }
+    }
+
+    reply->deleteLater();
+    reply = 0;
+}
+
+void MainWindow::onHttpReadyRead()
+{
+    QString strResponse;
+    strResponse.prepend(reply->readAll());
+    if (strResponse.isNull())
+        return;
+    //取出section with id=free
+    int indexSessionStart = strResponse.indexOf(tr("id=\"free\""));
+    if (indexSessionStart < 0)
+        return;
+    strResponse = strResponse.mid(indexSessionStart);
+    int indexSessionStop = strResponse.indexOf(tr("id=\"purchase\""));
+    if (indexSessionStop < 0)
+        return;
+    strResponse = strResponse.mid(0, indexSessionStop);
+    if (strResponse.isNull())
+        return;
+    isValidServer = true;
+    model->updateItems(strResponse);
+}
+
+void MainWindow::keepOnline()
+{
+    /*QString serverName = "8.8.8.8";
+    QHostAddress serverAddr(serverName);
+    if (serverAddr.isNull()) {
+        QHostInfo::lookupHost(serverName, this, SLOT(onServerAddressLookedUp(QHostInfo)));
+    } else {
+        QSS::AddressTester *addrTester = new QSS::AddressTester(serverAddr, 80, this);
+        connect(addrTester, &QSS::AddressTester::lagTestFinished, this, &onLatencyAvailable);
+        connect(addrTester, &QSS::AddressTester::lagTestFinished, addrTester, &QSS::AddressTester::deleteLater);
+        addrTester->startLagTest();
+    }*/
+    QTime now = QTime::currentTime();
+    QMessageBox::information(this, "现在时间", QString::number(now.hour())+":"+QString::number(now.minute()));
+    if (!isValidServer)
+        getIShadowSocksServers();
+    model->testAllLatency();
+}
+
+/*void MainWindow::onLatencyAvailable(const int &latency)
+{
+    QMessageBox::information(this, "8.8.8.8", QString(latency));
+}*/
 
 void MainWindow::onImportGuiJson()
 {
@@ -540,3 +631,21 @@ void MainWindow::setupActionIcon()
     ui->actionReportBug->setIcon(QIcon::fromTheme("tools-report-bug",
                                  QIcon::fromTheme("help-faq")));
 }
+
+#ifndef QT_NO_SSL
+void MainWindow::sslErrors(QNetworkReply*,const QList<QSslError> &errors)
+{
+    QString errorString;
+    foreach (const QSslError &error, errors) {
+        if (!errorString.isEmpty())
+            errorString += ", ";
+        errorString += error.errorString();
+    }
+
+    if (QMessageBox::warning(this, tr("HTTP"),
+                             tr("One or more SSL errors has occurred: %1").arg(errorString),
+                             QMessageBox::Ignore | QMessageBox::Abort) == QMessageBox::Ignore) {
+        reply->ignoreSslErrors();
+    }
+}
+#endif

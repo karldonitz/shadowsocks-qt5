@@ -47,6 +47,11 @@ const QString& Connection::getLog() const
     return log;
 }
 
+int Connection::getLatency() const
+{
+    return profile.latency;
+}
+
 QByteArray Connection::getURI() const
 {
     QString ssurl = QString("%1:%2@%3:%4").arg(profile.method.toLower()).arg(profile.password).arg(profile.serverAddress).arg(QString::number(profile.serverPort));
@@ -168,4 +173,11 @@ void Connection::onLatencyAvailable(const int &latency)
 {
     profile.latency = latency;
     emit latencyAvailable(latency);
+}
+
+void Connection::updateProfile(QString password, quint16 serverPort, QString method)
+{
+    profile.password = password;
+    profile.serverPort = serverPort;
+    profile.method = method;
 }
