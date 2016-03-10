@@ -134,7 +134,7 @@ MainWindow::MainWindow(QWidget *parent) :
             this, &MainWindow::onCustomContextMenuRequested);
 
     checkCurrentIndex();
-    getIShadowSocksServers();
+    keepOnline();
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(keepOnline()));
     timer->start(1000*60*5);
@@ -239,7 +239,10 @@ void MainWindow::keepOnline()
         addrTester->startLagTest();
     }*/
     QTime now = QTime::currentTime();
-    QMessageBox::information(this, "现在时间", QString::number(now.hour())+":"+QString::number(now.minute()));
+    //QMessageBox::information(this, "现在时间", QString::number(now.hour())+":"+QString::number(now.minute()));
+    int hour = now.hour()/6;
+    if (hour==0 && now.minute()<10)
+        isValidServer = false;
     if (!isValidServer)
         getIShadowSocksServers();
     model->testAllLatency();

@@ -187,11 +187,15 @@ void ConnectionTableModel::onConnectionLatencyChanged()
         {
             latencyBest = latency;
             if(!con->isRunning())
+            {
+                for(auto *item : items)
+                {
+                    if(item->getConnection()->isRunning())
+                        item->getConnection()->stop();
+                }
                 con->start();
+            }
         }
-        else
-            con->stop();
-    }else
-        con->stop();
+    }
     emit dataChanged(this->index(row, 3), this->index(row, 3));
 }
