@@ -136,11 +136,11 @@ void ConnectionItem::onConnectionStateChanged(bool running)
 
 void ConnectionItem::onConnectionPingFinished(const int latency)
 {
-    if (latency == -1) {//TIMEOUT
+    /*if (latency == -1) {//TIMEOUT
         emit message(con->getName() + " " + tr("timed out"));
     } else if (latency == -2) {//ERROR
         emit message(con->getName() + " " + tr("latency test failed"));
-    }
+    }*/
 }
 
 void ConnectionItem::onStartFailed()

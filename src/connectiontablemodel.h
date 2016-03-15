@@ -21,6 +21,8 @@
 
 #include <QAbstractTableModel>
 #include <QList>
+#include <QUrl>
+#include <QNetworkAccessManager>
 #include "connectionitem.h"
 
 class ConnectionTableModel : public QAbstractTableModel
@@ -49,6 +51,7 @@ public:
 
 public slots:
     void testAllLatency();
+    void keepOnline();
 
 signals:
     void message(const QString &);
@@ -57,11 +60,21 @@ signals:
 private:
     QList<ConnectionItem*> items;
     int latencyBest;
+    QTimer *timer;
+    QNetworkAccessManager qnam;
+    QNetworkReply *reply;
     static QString convertLatencyToString(const int latency);
+    bool isValidServer;
+    void getIShadowSocksServers();
 
 private slots:
     void onConnectionStateChanged(bool running);
     void onConnectionLatencyChanged();
+    void onHttpFinished();
+    void onHttpReadyRead();
+#ifndef QT_NO_SSL
+    void sslErrors(QNetworkReply*,const QList<QSslError> &errors);
+#endif
 };
 
 #endif // CONNECTIONTABLEMODEL_H

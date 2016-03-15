@@ -21,8 +21,6 @@
 
 #include <QMainWindow>
 #include <QSortFilterProxyModel>
-#include <QUrl>
-#include <QNetworkAccessManager>
 #include "connectiontablemodel.h"
 #include "confighelper.h"
 #include "statusnotifier.h"
@@ -43,7 +41,6 @@ public:
     bool isHideWindowOnStartup() const;
 
     void startAutoStartConnections();
-    void getIShadowSocksServers();
 
 private:
     ConnectionTableModel *model;
@@ -51,10 +48,6 @@ private:
     ConfigHelper *configHelper;
     Ui::MainWindow *ui;
     StatusNotifier *notifier;
-    QNetworkAccessManager qnam;
-    QNetworkReply *reply;
-    QTimer *timer;
-    bool isValidServer;
 
     void newProfile(Connection *);
     void editRow(int row);
@@ -92,13 +85,6 @@ private slots:
     void onFilterToggled(bool);
     void onFilterTextChanged(const QString &text);
     void onQRCodeCapturerResultFound(const QString &uri);
-    void onHttpFinished();
-    void onHttpReadyRead();
-    void keepOnline();
-
-#ifndef QT_NO_SSL
-    void sslErrors(QNetworkReply*,const QList<QSslError> &errors);
-#endif
 
 protected slots:
     void hideEvent(QHideEvent *e);
