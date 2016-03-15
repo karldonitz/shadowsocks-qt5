@@ -22,6 +22,7 @@
 #include <QDataStream>
 #include <QDate>
 #include <QDateTime>
+#include <QQueue>
 
 struct SQProfile
 {

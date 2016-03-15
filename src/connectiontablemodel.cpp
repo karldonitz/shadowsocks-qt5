@@ -148,6 +148,7 @@ void ConnectionTableModel::updateItems(QString msg)
         //QMessageBox::information(this, label, method);
         con->updateProfile(password, (quint16)serverPort, method);
     }
+    emit message(tr("Server information updated."));
     testAllLatency();
 }
 

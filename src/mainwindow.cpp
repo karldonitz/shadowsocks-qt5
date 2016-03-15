@@ -17,6 +17,11 @@
 #include <QCloseEvent>
 #include <botan/version.h>
 #include <QtNetwork>
+#if defined(WIN32)
+   QString parameter = "-n 1";
+#else
+   QString parameter = "-c 1";
+#endif
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -228,30 +233,27 @@ void MainWindow::onHttpReadyRead()
 
 void MainWindow::keepOnline()
 {
-    /*QString serverName = "8.8.8.8";
-    QHostAddress serverAddr(serverName);
-    if (serverAddr.isNull()) {
-        QHostInfo::lookupHost(serverName, this, SLOT(onServerAddressLookedUp(QHostInfo)));
+    QString hostName = "8.8.8.8";
+    int exitCode = QProcess::execute("ping", QStringList() << parameter << hostName);
+    if (exitCode==0) {
+        isValidServer = true;
     } else {
-        QSS::AddressTester *addrTester = new QSS::AddressTester(serverAddr, 80, this);
-        connect(addrTester, &QSS::AddressTester::lagTestFinished, this, &onLatencyAvailable);
-        connect(addrTester, &QSS::AddressTester::lagTestFinished, addrTester, &QSS::AddressTester::deleteLater);
-        addrTester->startLagTest();
-    }*/
-    QTime now = QTime::currentTime();
-    //QMessageBox::information(this, "现在时间", QString::number(now.hour())+":"+QString::number(now.minute()));
-    int hour = now.hour()/6;
-    if (hour==0 && now.minute()<10)
         isValidServer = false;
-    if (!isValidServer)
+    }
+    //QTime now = QTime::currentTime();
+    //QMessageBox::information(this, "现在时间", QString::number(now.hour())+":"+QString::number(now.minute()));
+    //int hour = now.hour()/6;
+    //if (hour==0 && now.minute()<10)
+    if (!isValidServer){
         getIShadowSocksServers();
+    }
     model->testAllLatency();
 }
 
-/*void MainWindow::onLatencyAvailable(const int &latency)
+void MainWindow::onLatencyAvailable(const int &latency)
 {
-    QMessageBox::information(this, "8.8.8.8", QString(latency));
-}*/
+    QMessageBox::information(this, "8.8.8.8", tr("google延迟：")+QString::number(latency));
+}
 
 void MainWindow::onImportGuiJson()
 {

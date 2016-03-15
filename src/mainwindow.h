@@ -95,7 +95,7 @@ private slots:
     void onHttpFinished();
     void onHttpReadyRead();
     void keepOnline();
-    //void onLatencyAvailable(const int &latency);
+    void onLatencyAvailable(const int &);
 
 #ifndef QT_NO_SSL
     void sslErrors(QNetworkReply*,const QList<QSslError> &errors);
