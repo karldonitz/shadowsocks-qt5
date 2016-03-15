@@ -56,7 +56,6 @@ signals:
 
 private:
     QList<ConnectionItem*> items;
-    QList<QQueue<int>*> latency;
     int latencyBest;
     static QString convertLatencyToString(const int latency);
 

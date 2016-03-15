@@ -250,11 +250,6 @@ void MainWindow::keepOnline()
     model->testAllLatency();
 }
 
-void MainWindow::onLatencyAvailable(const int &latency)
-{
-    QMessageBox::information(this, "8.8.8.8", tr("google延迟：")+QString::number(latency));
-}
-
 void MainWindow::onImportGuiJson()
 {
     QString file = QFileDialog::getOpenFileName(
