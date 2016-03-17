@@ -6,24 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>340</width>
-    <height>217</height>
+    <width>406</width>
+    <height>225</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>General Settings</string>
   </property>
   <layout class="QFormLayout" name="formLayout">
-   <item row="6" column="0" colspan="2">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
    <item row="2" column="0">
     <widget class="QLabel" name="toolbarStyleLabel">
      <property name="text">
@@ -89,6 +79,26 @@
       <string>Use native menu bar</string>
      </property>
     </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="labelFreeSite">
+     <property name="text">
+      <string>Free site:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLineEdit" name="editFreeSite"/>
    </item>
   </layout>
  </widget>

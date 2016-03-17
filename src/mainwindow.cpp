@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->connectionView->resizeColumnsToContents();
     ui->toolBar->setToolButtonStyle(static_cast<Qt::ToolButtonStyle>
                                     (configHelper->getToolbarStyle()));
+    model->setFreeSite(configHelper->getFreeSite());
     setupActionIcon();
 
     notifier = new StatusNotifier(this, this->isHideWindowOnStartup(), this);
@@ -89,6 +90,8 @@ MainWindow::MainWindow(QWidget *parent) :
             this, &MainWindow::onForceConnect);
     connect(ui->actionDisconnect, &QAction::triggered,
             this, &MainWindow::onDisconnect);
+    connect(ui->actionConnectISS, &QAction::triggered,
+            model, &ConnectionTableModel::getIShadowSocksServers);
     connect(ui->actionTestLatency, &QAction::triggered,
             this, &MainWindow::onLatencyTest);
     connect(ui->actionViewLog, &QAction::triggered,

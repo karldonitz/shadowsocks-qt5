@@ -1,14 +1,16 @@
 #include "connectiontablemodel.h"
 #include <QMessageBox>
 #include <QtNetwork>
+#include <QChar>
+
 #if defined(WIN32)
-   QString parameter = "-n 2";
+   QString parameter = "-n 1";
 #else
-   QString parameter = "-c 2";
+   QString parameter = "-c 1";
 #endif
 
 ConnectionTableModel::ConnectionTableModel(QObject *parent) :
-    QAbstractTableModel(parent), latencyBest(1e6),
+    QAbstractTableModel(parent), latencyBest(1e9),
     isValidServer(false)
 {
     timer = new QTimer(this);
@@ -148,10 +150,12 @@ void ConnectionTableModel::disconnectConnectionsAt(const QString &addr, quint16 
 
 void ConnectionTableModel::updateItems(QString msg)
 {
+    msg = msg.toLower();
     for (int i = 0; i < rowCount(); ++i) {
         Connection *con = getItem(i)->getConnection();
         QString serverName = con->getName();
         int indexStart = msg.indexOf(serverName);
+        QString serverAddr = findFirstTagValue(msg, indexStart, serverName);
         QString label = tr("密码:");
         QString password = findFirstTagValue(msg, indexStart, label);
         //QMessageBox::information(, label, password);
@@ -165,17 +169,25 @@ void ConnectionTableModel::updateItems(QString msg)
         label = tr("加密方式:");
         QString method = findFirstTagValue(msg, indexStart, label);
         //QMessageBox::information(this, label, method);
-        con->updateProfile(password, (quint16)serverPort, method);
+        con->updateProfile(serverAddr, password, (quint16)serverPort, method);
     }
+    isValidServer = true;
     emit message(tr("Server information updated."));
-    testAllLatency();
 }
 
 QString ConnectionTableModel::findFirstTagValue(QString msg, int indexStart, QString label)
 {
     indexStart = msg.indexOf(label, indexStart)+label.length();
     int indexStop = msg.indexOf(tr("<"), indexStart);
-    return msg.mid(indexStart, indexStop - indexStart);
+    QString value = msg.mid(indexStart, indexStop - indexStart);
+    for(int i=0; i<value.size(); i++){
+        QChar charNow = value.at(i);
+        if(!charNow.isLetterOrNumber() && charNow!=QChar('-') && charNow!=QChar('.'))
+        {
+            value.remove(charNow);
+        }
+    }
+    return value;
 }
 
 void ConnectionTableModel::testAllLatency()
@@ -200,17 +212,16 @@ void ConnectionTableModel::onConnectionLatencyChanged()
     int row = items.indexOf(item);
     Connection *con = item->getConnection();
     int latency = con->getLatency();
+    qDebug()<<con->getName()<<"latency test value:"<<latency;
     if (latency>0)
     {
-        if(con->isRunning())
-            latencyBest = latency;
-        else if(latency < latencyBest)
+        latencyBest = latency;
+        if(!con->isRunning() && latency < latencyBest)
         {
             for(auto *item : items)
                 if(item->getConnection()->isRunning())
                     item->getConnection()->stop();
             con->start();
-            latencyBest = latency;
         }
     }
     emit dataChanged(this->index(row, 3), this->index(row, 3));
@@ -218,28 +229,37 @@ void ConnectionTableModel::onConnectionLatencyChanged()
 
 void ConnectionTableModel::keepOnline()
 {
-    QString hostName = "8.8.8.8";
+    /*QString hostName = "8.8.8.8";
     int exitCode = QProcess::execute("ping", QStringList() << parameter << hostName);
     if (exitCode==0) {
         isValidServer = true;
     } else {
         isValidServer = false;
         emit message("ping 8.8.8.8 failed!");
-    }
-    //QTime now = QTime::currentTime();
-    //QMessageBox::information(this, "现在时间", QString::number(now.hour())+":"+QString::number(now.minute()));
-    //int hour = now.hour()/6;
-    //if (hour==0 && now.minute()<10)
+    }*/
+    QTime now = QTime::currentTime();
+    if (((now.hour()/6))==0 && now.minute()<10)
+        isValidServer = false;
     if (!isValidServer){
         getIShadowSocksServers();
     }
-    testAllLatency();
+    bool isAllDisconnect = true;
+    for (auto &item : items) {
+        Connection *con = item->getConnection();
+        if (con->isRunning()) {
+            isAllDisconnect = false;
+            break;
+        }
+    }
+    qDebug()<<now<<": "<<"All disconnect? "<<isAllDisconnect;
+    if (isAllDisconnect)
+        testAllLatency();
 }
 
 
 void ConnectionTableModel::getIShadowSocksServers()
 {
-    QUrl url = tr("http://www.ishadowsocks.com");
+    QUrl url = freeSite;
     QByteArray postData;
     postData.append("");
     QNetworkRequest request;
@@ -248,18 +268,15 @@ void ConnectionTableModel::getIShadowSocksServers()
     reply = qnam.get(request);
     connect(reply, SIGNAL(finished()), this, SLOT(onHttpFinished()));
     connect(reply, SIGNAL(readyRead()), this, SLOT(onHttpReadyRead()));
+    emit message(tr("Tring to connect ")+freeSite);
     //qnam.post(request, postData);
 }
 
 void ConnectionTableModel::onHttpFinished()
 {
     QVariant redirectionTarget = reply->attribute(QNetworkRequest::RedirectionTargetAttribute);
-    if (reply->error()) {
-        isValidServer = false;
-    } else if (!redirectionTarget.isNull()) {
-        reply->deleteLater();
-        getIShadowSocksServers();
-        return;
+    if (reply->error() || !redirectionTarget.isNull()) {
+        emit message(tr("Can't touch ")+freeSite);
     }
 
     reply->deleteLater();
@@ -283,9 +300,14 @@ void ConnectionTableModel::onHttpReadyRead()
     strResponse = strResponse.mid(0, indexSessionStop);
     if (strResponse.isNull())
         return;
-    isValidServer = true;
     updateItems(strResponse);
 }
+
+void ConnectionTableModel::setFreeSite(const QString freeSite)
+{
+    this->freeSite = freeSite;
+}
+
 
 #ifndef QT_NO_SSL
 void ConnectionTableModel::sslErrors(QNetworkReply*,const QList<QSslError> &errors)

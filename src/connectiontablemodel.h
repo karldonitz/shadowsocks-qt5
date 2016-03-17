@@ -48,10 +48,12 @@ public:
 
     void updateItems(QString msg);
     QString findFirstTagValue(QString msg, int indexStart, QString label);
+    void setFreeSite(const QString freeSite);
 
 public slots:
     void testAllLatency();
     void keepOnline();
+    void getIShadowSocksServers();
 
 signals:
     void message(const QString &);
@@ -65,7 +67,7 @@ private:
     QNetworkReply *reply;
     static QString convertLatencyToString(const int latency);
     bool isValidServer;
-    void getIShadowSocksServers();
+    QString freeSite;
 
 private slots:
     void onConnectionStateChanged(bool running);

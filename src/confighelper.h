@@ -43,11 +43,14 @@ public:
     bool isShowToolbar() const;
     bool isShowFilterBar() const;
     bool isNativeMenuBar() const;
-    void setGeneralSettings(int ts, bool hide, bool oneInstance, bool nativeMB);
+    void setGeneralSettings(int ts, bool hide, bool oneInstance, bool nativeMB, QString freeSite);
     QByteArray getMainWindowGeometry() const;
     void setMainWindowGeometry(const QByteArray &geometry);
     QByteArray getMainWindowState() const;
     void setMainWindowState(const QByteArray &state);
+    void setShadowSocksSite(const QString &site);
+    QString getShadowSocksSite() const;
+    QString getFreeSite() const;
 
 public slots:
     void save();
@@ -67,6 +70,7 @@ private:
     QSettings *settings;
     ConnectionTableModel *model;
     QString configFile;
+    QString freeSite;
 
     void readConfiguration();
     void checkProfileDataUsageReset(SQProfile &profile);

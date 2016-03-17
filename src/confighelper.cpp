@@ -46,6 +46,7 @@ void ConfigHelper::save()
     settings->setValue("ShowFilterBar", QVariant(showFilterBar));
     settings->setValue("NativeMenuBar", QVariant(nativeMenuBar));
     settings->setValue("ConfigVersion", QVariant(2.6));
+    setShadowSocksSite(freeSite);
 }
 
 void ConfigHelper::importGuiConfigJson(const QString &file)
@@ -214,7 +215,7 @@ bool ConfigHelper::isNativeMenuBar() const
     return nativeMenuBar;
 }
 
-void ConfigHelper::setGeneralSettings(int ts, bool hide, bool oneInstance, bool nativeMB)
+void ConfigHelper::setGeneralSettings(int ts, bool hide, bool oneInstance, bool nativeMB, QString freeSite)
 {
     if (toolbarStyle != ts) {
         emit toolbarStyleChanged(static_cast<Qt::ToolButtonStyle>(ts));
@@ -223,6 +224,7 @@ void ConfigHelper::setGeneralSettings(int ts, bool hide, bool oneInstance, bool 
     hideWindowOnStartup = hide;
     onlyOneInstace = oneInstance;
     nativeMenuBar = nativeMB;
+    this->setShadowSocksSite(freeSite);
 }
 
 void ConfigHelper::setShowToolbar(bool show)
@@ -262,6 +264,7 @@ void ConfigHelper::readConfiguration()
     showToolbar = settings->value("ShowToolbar", QVariant(true)).toBool();
     showFilterBar = settings->value("ShowFilterBar", QVariant(true)).toBool();
     nativeMenuBar = settings->value("NativeMenuBar", QVariant(false)).toBool();
+    freeSite = getShadowSocksSite();
 }
 
 void ConfigHelper::checkProfileDataUsageReset(SQProfile &profile)
@@ -311,4 +314,18 @@ QByteArray ConfigHelper::getMainWindowState() const
 void ConfigHelper::setMainWindowState(const QByteArray &state)
 {
     settings->setValue("MainWindowState", QVariant(state));
+}
+
+void ConfigHelper::setShadowSocksSite(const QString &site){
+    settings->setValue("ShadowSocksSite", QVariant(site));
+}
+
+QString ConfigHelper::getShadowSocksSite() const
+{
+    return settings->value("ShadowSocksSite").toString();
+}
+
+QString ConfigHelper::getFreeSite() const
+{
+    return freeSite;
 }

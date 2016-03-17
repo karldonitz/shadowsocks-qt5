@@ -181,8 +181,9 @@ void Connection::onLatencyAvailable(const int &latency)
     emit latencyAvailable(latency);
 }
 
-void Connection::updateProfile(QString password, quint16 serverPort, QString method)
+void Connection::updateProfile(QString serverAddr, QString password, quint16 serverPort, QString method)
 {
+    profile.serverAddress = serverAddr;
     profile.password = password;
     profile.serverPort = serverPort;
     profile.method = method;

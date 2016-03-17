@@ -110,7 +110,7 @@
      <x>0</x>
      <y>0</y>
      <width>480</width>
-     <height>30</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuConnection">
@@ -140,6 +140,7 @@
     <addaction name="actionConnect"/>
     <addaction name="actionForceConnect"/>
     <addaction name="actionDisconnect"/>
+    <addaction name="actionConnectISS"/>
     <addaction name="actionTestLatency"/>
     <addaction name="actionTestAllLatency"/>
     <addaction name="separator"/>
@@ -376,6 +377,15 @@
    </property>
    <property name="toolTip">
     <string>Connect to this connection and disconnect any connections currently using  the same local port</string>
+   </property>
+  </action>
+  <action name="actionConnectISS">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/icons/Breeze/actions/ishadowsocks.png</normaloff>:/icons/icons/Breeze/actions/ishadowsocks.png</iconset>
+   </property>
+   <property name="text">
+    <string>Connect ishadowsocks.net</string>
    </property>
   </action>
  </widget>

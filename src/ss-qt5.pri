@@ -35,7 +35,10 @@ HEADERS      += src/mainwindow.h \
                 src/statusnotifier.h \
                 src/connectiontablemodel.h \
                 src/connectionitem.h \
-                src/qrcodecapturer.h
+                src/qrcodecapturer.h \
+    $$PWD/../ui_mainwindow.h \
+    $$PWD/../ui_settingsdialog.h \
+    $$PWD/../ui_editdialog.h
 
 FORMS        += src/mainwindow.ui \
                 src/sharedialog.ui \
@@ -66,3 +69,5 @@ unix : {
     CONFIG    += link_pkgconfig
     PKGCONFIG += libqrencode QtShadowsocks botan-$$BOTAN_VER zbar gtk+-2.0 appindicator-0.1
 }
+
+DISTFILES +=
